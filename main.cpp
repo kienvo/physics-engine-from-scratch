@@ -211,8 +211,8 @@ private:
 
 			// TODO: Add  coefficient of restitution to objects properties
 			// Energy loss,  coefficient of restitution
-			a->Velocity = v1*0.9f;
-			b->Velocity = v2*0.9f;
+			a->Velocity = v1;//*0.9f;
+			b->Velocity = v2;//*0.9f;
 	}
 	void sovleCollision(Circle* a, Ground* b, CollisionPoints p, float dt) {
 			Vector2f apos = a->getPosition();
@@ -233,7 +233,7 @@ private:
 			Vector2f v1 = u1 - (2*m2/masssum)*(algo::DotProduct(u1-u2, x1-x2)/(x1subx2*x1subx2))*(x1-x2);
 			// Ground cannot move
 			//Vector2f v2 = u2 - (2*m1/masssum)*(algo::DotProduct(u2-u1, x2-x1)/(x2subx1*x2subx1))*(x2-x1);
-			a->Velocity = v1*0.8f;
+			a->Velocity = v1*0.7f;
 	}
 	void sovleCollisions(vector<Collision>& collisions, float dt) {
 		for(Collision i: collisions) {
@@ -336,6 +336,44 @@ unsigned int rgb(double ratio)
     return ((red<<24) + (grn << 16) + (blu << 8)) | 0xff;
 }
 
+vector<Circle*> objs;
+static PhysicsWorld world;
+
+void addNewCircle(Vector2f position) {
+	static double cl = 0;
+	cl += 0.005; if(cl-1.0>0.001) cl = 0;
+	Circle *obj = new Circle(5.f);
+	obj->setPosition(position);
+	obj->setFillColor(Color(rgb(cl)));
+
+	world.addObject(obj);
+	objs.push_back(obj);
+}
+
+void EventHandler(RenderWindow& window){
+	static bool LeftButtonState;
+	static uint8_t blstate = 0, hold=0;
+	Event event;
+	while(window.pollEvent(event)) {
+		if(event.type == Event::Closed) 
+			window.close();
+		else if(event.type == Event::KeyPressed) {
+			if(Keyboard::isKeyPressed(Keyboard::Space)) {
+				//
+			} else if(Keyboard::isKeyPressed(Keyboard::Escape)) {
+				window.close();
+			} else if(Keyboard::isKeyPressed(Keyboard::W) && event.key.control){
+				window.close();
+			}
+		} else if (event.mouseButton.button == Mouse::Left){
+			LeftButtonState = !LeftButtonState;
+		}
+	}
+	if(LeftButtonState) {
+		addNewCircle(window.mapPixelToCoords(Mouse::getPosition(window)));
+	}
+}
+
 int main() {
 	ContextSettings settings;
 	settings.antialiasingLevel = 8;
@@ -351,12 +389,10 @@ int main() {
 	view.setSize(600.f, -600.f);
 	window.setView(view); 
 	
-	Circle* ball = new Circle(80.f);
+	static Circle* ball = new Circle(80.f);
 	ball->setPosition(100.f,400.f);	
 	ball->setFillColor(Color::Green);
 
-	vector<Circle*> objs;
-	PhysicsWorld world;
 	Clock clock;
 	Time t0= clock.getElapsedTime();
 
@@ -376,39 +412,25 @@ int main() {
 	world.addObject(wall2);
 	world.addObject(ball); objs.push_back(ball);
 
+
 	while(window.isOpen()) {
-		Event event;
-		while(window.pollEvent(event)) {
-			if(event.type == Event::Closed) 
-				window.close();
-			else if(event.type == Event::KeyPressed) {
-				if(Keyboard::isKeyPressed(Keyboard::Space)) {
-					Time t = clock.getElapsedTime();
-					cerr << "t = " << t.asSeconds() << endl;
-					//cerr << "v = (" << v.x << ", "<<v.y<<")" << endl;
-				} else if(Keyboard::isKeyPressed(Keyboard::Escape)) {
-					window.close();
-				} else if(Keyboard::isKeyPressed(Keyboard::W) && event.key.control){
-					window.close();
-				}
-			}
-		}
+		EventHandler(window);
 
-		i++;
-		if(i>=10) {
-			i=0;
-			Circle *obj = new Circle(5.f);
-			obj->setPosition(Vector2f(50.f,500.f));
-			cl += 0.005; if(cl-1.0>0.001) cl = 0;
-			obj->setFillColor(Color(rgb(cl)));
+		// i++;
+		// if(i>=10) {
+		// 	i=0;
+		// 	Circle *obj = new Circle(5.f);
+		// 	obj->setPosition(Vector2f(50.f,500.f));
+		// 	cl += 0.005; if(cl-1.0>0.001) cl = 0;
+		// 	obj->setFillColor(Color(rgb(cl)));
 
-			float r1 = 20.f+ static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(50.f)));
-			float r2 = 30.f+ static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(50.f)));
-			obj->Velocity = Vector2f(r1,r2);
+		// 	float r1 = 20.f+ static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(50.f)));
+		// 	float r2 = 30.f+ static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(50.f)));
+		// 	obj->Velocity = Vector2f(r1,r2);
 
-			world.addObject(obj);
-			objs.push_back(obj);
-		}
+		// 	world.addObject(obj);
+		// 	objs.push_back(obj);
+		// }
 
 		Time t1 = clock.getElapsedTime();
 		Time dt = t1 - t0;
