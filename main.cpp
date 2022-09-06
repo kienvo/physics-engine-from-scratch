@@ -352,7 +352,8 @@ void addNewCircle(Vector2f position) {
 
 void EventHandler(RenderWindow& window){
 	static bool LeftButtonState;
-	static uint8_t blstate = 0, hold=0;
+	static int i=0;
+	i++;
 	Event event;
 	while(window.pollEvent(event)) {
 		if(event.type == Event::Closed) 
@@ -369,8 +370,15 @@ void EventHandler(RenderWindow& window){
 			LeftButtonState = !LeftButtonState;
 		}
 	}
-	if(LeftButtonState) {
-		addNewCircle(window.mapPixelToCoords(Mouse::getPosition(window)));
+	if(i>5) {
+		i=0;
+		Vector2f mousepos = window.mapPixelToCoords(Mouse::getPosition(window));
+		if(mousepos.x <=5 || mousepos.y <=5
+			|| mousepos.x >595.f || mousepos.y >595.f) LeftButtonState = false;
+		if(LeftButtonState) {
+			addNewCircle(window.mapPixelToCoords(Mouse::getPosition(window)));
+		}
+		cerr<< "Mouse = " << mousepos.x << ", " << mousepos.y << endl;
 	}
 }
 
